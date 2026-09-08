@@ -1,0 +1,11 @@
+name: cnct_examples
+description: Runnable examples for the CNCT SDK — plain Dart, no Flutter needed.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  cnct_flutter_sdk:
+    path: ../

@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  package:
+    name: Package (pure Dart)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed --line-length 100 lib test
+      - run: dart analyze --fatal-infos
+      - run: dart test
+      - name: Examples (plain Dart)
+        working-directory: example
+        run: dart pub get && dart analyze --fatal-infos
+
+  flutter_example:
+    name: Example app (Flutter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - working-directory: example/flutter_app
+        run: flutter pub get
+      - working-directory: example/flutter_app
+        run: flutter analyze
+      - working-directory: example/flutter_app
+        run: flutter test

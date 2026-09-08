@@ -1,0 +1,26 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+pubspec.lock
+doc/api/
+
+# Flutter example
+example/flutter_app/.flutter-plugins
+example/flutter_app/.flutter-plugins-dependencies
+example/flutter_app/android/.gradle/
+example/flutter_app/android/local.properties
+example/flutter_app/ios/Pods/
+example/flutter_app/ios/.symlinks/
+example/flutter_app/ios/Flutter/Flutter.podspec
+example/flutter_app/ios/Flutter/Generated.xcconfig
+example/flutter_app/ios/Flutter/flutter_export_environment.sh
+
+# Editors and OS
+.idea/
+.vscode/
+*.iml
+*.swp
+.DS_Store

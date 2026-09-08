@@ -1,0 +1,22 @@
+name: cnct_chat_example
+description: A chat screen built on the CNCT Flutter SDK.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  cnct_flutter_sdk:
+    path: ../../
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
