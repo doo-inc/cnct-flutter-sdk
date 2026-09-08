@@ -17,8 +17,11 @@ dependencies:
   cnct_flutter_sdk:
     git:
       url: https://github.com/doo-inc/cnct-flutter-sdk.git
-      ref: v0.1.0
+      ref: main
 ```
+
+Pin a tag rather than `main` the moment one exists. What a client ships is what their users run, and
+an SDK that moves under a released app is a bug report nobody can reproduce.
 
 ---
 
