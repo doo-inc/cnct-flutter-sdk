@@ -1,16 +1,25 @@
-# cnct_chat_example
+# CNCT chat, as a real screen
 
-A new Flutter project.
+A working chat interface built on `cnct_flutter_sdk`, and deliberately an ordinary one — the bubbles,
+the composer, the retry button and the cards are all this app's. Nothing here comes from the SDK,
+which is the arrangement: it ships state and events, and the interface is yours.
 
-## Getting Started
+```bash
+flutter pub get
+flutter run \
+  --dart-define=CNCT_BASE_URL=https://your-cnct-host \
+  --dart-define=CNCT_PUBLIC_KEY=your-inbox-public-key
+```
 
-This project is a starting point for a Flutter application.
+Both are build flags rather than constants in the source. The host especially: it is the one value
+that changes between a laptop, a staging box and production.
 
-A few resources to get you started if this is your first Flutter project:
+Three files, and each is worth reading for a different reason:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+| File                | What it shows                                                                     |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `lib/main.dart`     | Where the host lives, and what an unconfigured build should say                    |
+| `lib/chat_screen.dart` | Rendering `CnctChatState`, cards with a `default` branch, a failed bubble that offers a retry |
+| `lib/token_store.dart` | Persisting the visitor's session in three callbacks, so a returning customer comes back to their own thread |
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Copy any of it. It is meant to be deleted once your own design system has the screen.
