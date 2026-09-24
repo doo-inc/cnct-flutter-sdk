@@ -2,14 +2,22 @@ import 'exception.dart';
 
 /// The CNCT hosts this SDK knows about by name.
 ///
-/// **There is one today, and it is a dev box.** Naming it here rather than defaulting to it means
-/// swapping to a production hostname later is one line in one file for an integrator, and — more
-/// to the point — means nobody ships to production against a development host by *forgetting* to
-/// set something. [CnctConfig.baseUrl] is required for exactly that reason.
+/// **CNCT runs at `app.doo.ooo`, and that is the default.** Until 0.2.0 the only deployment was a
+/// development box, so the host was required and had no default — a default then would have meant
+/// shipping to production against a dev box by forgetting to set something. There is a production
+/// host now, so leaving [CnctConfig.baseUrl] out means production, and anything else — a proxy on
+/// your own domain, a local server — is still one `baseUrl` away.
+///
+/// Whether what you do is real is decided by the key, not the host: a sandbox key (`kaer_sk_test_…`)
+/// talks to the same production host and writes nothing real. See [CnctApiKey].
 abstract final class CnctHosts {
-  /// The current CNCT deployment. Expected to be replaced by a stable hostname; when that happens
-  /// this constant changes and no call site does.
-  static final Uri development = Uri.parse('https://44-216-80-220.sslip.io');
+  /// Production. What [CnctConfig.baseUrl] is when you leave it out.
+  static final Uri production = Uri.parse('https://app.doo.ooo');
+
+  /// The development box this used to name no longer answers — CNCT runs at `app.doo.ooo`. Kept so
+  /// code that referenced it still compiles, and pointed at production so it still works.
+  @Deprecated('Use CnctHosts.production, or leave baseUrl out.')
+  static final Uri development = production;
 }
 
 /// Where this SDK points and how it behaves on the wire.
@@ -25,18 +33,19 @@ abstract final class CnctHosts {
 /// ```
 class CnctConfig {
   CnctConfig({
-    required Object baseUrl,
+    Object? baseUrl,
     this.connectTimeout = const Duration(seconds: 20),
     this.sendTimeout = const Duration(seconds: 15),
     this.headers = const {},
     this.userAgent = 'cnct-flutter-sdk/$sdkVersion',
     this.logger,
-  }) : baseUrl = _normalise(baseUrl);
+  }) : baseUrl = _normalise(baseUrl ?? CnctHosts.production);
 
   /// The version this SDK reports in its `User-Agent`. Kept in step with `pubspec.yaml`.
   static const sdkVersion = '0.1.0';
 
-  /// The CNCT host, with an optional path prefix.
+  /// The CNCT host, with an optional path prefix. Defaults to [CnctHosts.production],
+  /// `https://app.doo.ooo`.
   ///
   /// A prefix is honoured rather than stripped: a client fronting CNCT at
   /// `https://theirdomain.com/support` is a legitimate arrangement, and every path this SDK builds
@@ -111,6 +120,14 @@ class CnctConfig {
   }
 
   static Uri _normalise(Object value) {
+    // An empty string is not "left out": it is a variable somebody meant to set.
+    if (value is String && value.trim().isEmpty) {
+      throw CnctException(
+        'baseUrl is empty. Leave it out to use CNCT production (${CnctHosts.production}), or pass '
+        'your own host.',
+        code: CnctErrorCode.invalid,
+      );
+    }
     final uri = switch (value) {
       Uri() => value,
       String() => Uri.parse(value.trim()),

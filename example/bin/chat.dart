@@ -7,14 +7,16 @@ import 'dart:io';
 import 'package:cnct_flutter_sdk/cnct_flutter_sdk.dart';
 
 Future<void> main() async {
+  // Optional: without it the SDK goes to CNCT production, https://app.doo.ooo.
   final baseUrl = Platform.environment['CNCT_BASE_URL'];
   final publicKey = Platform.environment['CNCT_PUBLIC_KEY'];
-  if (baseUrl == null || publicKey == null) {
-    stderr.writeln('Set CNCT_BASE_URL and CNCT_PUBLIC_KEY.');
+  if (publicKey == null) {
+    stderr.writeln('Set CNCT_PUBLIC_KEY.');
     exit(64);
   }
 
-  final chat = Cnct.host(baseUrl).chat(CnctChatPublicKey(publicKey));
+  final cnct = baseUrl == null ? Cnct() : Cnct.host(baseUrl);
+  final chat = cnct.chat(CnctChatPublicKey(publicKey));
 
   // A terminal has no localStorage, and this example does not want a session to outlive it anyway.
   // An app would pass a persistent store here — see flutter_app/lib/token_store.dart.

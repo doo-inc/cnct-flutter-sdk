@@ -67,6 +67,19 @@ void main() {
       });
       expect(url.queryParametersAll['attr'], ['plan:gold', 'city:manama']);
     });
+
+    // Required until there was a production host to default to; now leaving it out means that.
+    test('is production when left out', () {
+      expect(CnctConfig().baseUrl.toString(), 'https://app.doo.ooo');
+      expect(CnctConfig().baseUrl.toString(), CnctHosts.production.toString());
+      expect(Cnct().config.socketBaseUrl.toString(), 'wss://app.doo.ooo');
+    });
+
+    // An empty string is not "left out": it is a variable somebody meant to set.
+    test('refuses an empty one rather than quietly going to production', () {
+      expect(() => CnctConfig(baseUrl: ''), throwsA(isA<CnctException>()));
+      expect(() => CnctConfig(baseUrl: '  '), throwsA(isA<CnctException>()));
+    });
   });
 
   group('Cnct', () {

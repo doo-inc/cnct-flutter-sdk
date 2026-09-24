@@ -189,6 +189,7 @@ class CnctBookingConfirmation {
     required this.name,
     required this.partySize,
     required this.resourceName,
+    this.sandbox = false,
   });
 
   factory CnctBookingConfirmation.fromJson(Map<String, dynamic> json) => CnctBookingConfirmation(
@@ -197,7 +198,12 @@ class CnctBookingConfirmation {
         name: json['name'] as String?,
         partySize: (json['partySize'] as num?)?.toInt(),
         resourceName: json['with'] as String?,
+        sandbox: json['sandbox'] as bool? ?? false,
       );
+
+  /// True when a sandbox key made it: it is kept so it can be found, moved and cancelled, but it
+  /// holds no slot, nobody was told, and the business will never see it.
+  final bool sandbox;
 
   final String bookingId;
 
@@ -311,16 +317,20 @@ class CnctTicketTypeDetail {
 
 /// A ticket that now exists.
 class CnctRaisedTicket {
-  const CnctRaisedTicket({required this.ticketNumber, required this.note});
+  const CnctRaisedTicket({required this.ticketNumber, required this.note, this.sandbox = false});
 
   factory CnctRaisedTicket.fromJson(Map<String, dynamic> json) => CnctRaisedTicket(
         ticketNumber: (json['ticketNumber'] as num?)?.toInt() ?? 0,
         note: json['note'] as String?,
+        sandbox: json['sandbox'] as bool? ?? false,
       );
 
-  /// What a customer quotes back.
+  /// What a customer quotes back. A sandbox has its own numbering, from 1.
   final int ticketNumber;
   final String? note;
+
+  /// True when a sandbox key raised it: it is in no queue and nobody will work it.
+  final bool sandbox;
 }
 
 /// One of a customer's open tickets.

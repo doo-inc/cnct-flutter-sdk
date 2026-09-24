@@ -9,10 +9,11 @@
 /// | [CnctOperatorToken]   | The contact directory        | A staff app, from a person's login. |
 ///
 /// Start with [Cnct], or construct a client directly. Everything points at the host in
-/// [CnctConfig.baseUrl], and swapping that is the only change needed to move between environments.
+/// [CnctConfig.baseUrl] — production, `https://app.doo.ooo`, unless you say otherwise. Whether what
+/// you do is real is the key's business, not the host's: see [CnctApiKey].
 ///
 /// ```dart
-/// final cnct = Cnct.host(CnctHosts.development);
+/// final cnct = Cnct(); // https://app.doo.ooo
 /// final chat = cnct.chat(CnctChatPublicKey('the-inbox-public-key'));
 /// chat.states.listen(render);
 /// await chat.boot();

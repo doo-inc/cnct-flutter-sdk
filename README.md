@@ -25,23 +25,29 @@ an SDK that moves under a released app is a bug report nobody can reproduce.
 
 ---
 
-## Point it at your host
+## The host
 
+CNCT runs at **`https://app.doo.ooo`**, and that is where this SDK points unless you say otherwise.
 One value decides where everything goes — HTTP and the WebSocket alike, because the socket origin is
 derived from it rather than configured separately. There is nothing else to keep in step.
 
 ```dart
-final cnct = Cnct.host('https://your-cnct-host');
+final cnct = Cnct(); // https://app.doo.ooo — the same as CnctHosts.production
 ```
 
-It is **required**, with no default. There is one CNCT deployment today and it is a development box;
-defaulting to it would mean shipping to production by forgetting to set something. It is named as a
-constant so that swapping it later is one line:
+Name another host for anything else — CNCT behind your own domain, or a CNCT on your laptop:
 
 ```dart
-final cnct = Cnct.host(CnctHosts.development);   // today
-final cnct = Cnct.host('https://api.cnct.example'); // when there is a production hostname
+final cnct = Cnct.host('http://localhost:3001');
 ```
+
+**Testing is not a different host.** What decides whether a booking is real is the key — a
+[sandbox key](#sandbox-and-production) talks to the same `app.doo.ooo` and writes nothing real — so
+there is no staging URL to remember to swap before you ship.
+
+Before 0.2.0 the host was required and had no default, because the only CNCT deployment was a
+development box and a default would have meant shipping to it by accident. `CnctHosts.development`
+still compiles, deprecated, and now points at production.
 
 Swapping at runtime — an environment picker in a debug menu, a remote config value, a
 `--dart-define` — is `withBaseUrl`, and everything else in the config comes with it:
@@ -66,7 +72,7 @@ interchangeable, and the difference is not convenience — it is what happens wh
 | Credential                          | Opens                    | Where it belongs                                        |
 | ----------------------------------- | ------------------------ | ------------------------------------------------------- |
 | `CnctChatPublicKey('…')`            | Live chat, as a visitor  | **Inside your app.** It identifies an inbox, not a person, and it is already public — it is in the URL of the hosted chat page. |
-| `CnctApiKey('kaer_sk_…')`           | Bookings and tickets     | **On a server you control.** It is account-wide: it can book for, and cancel for, anybody. |
+| `CnctApiKey('kaer_sk_…')`           | Bookings and tickets     | **On a server you control.** It is account-wide: it can book for, and cancel for, anybody. Mint one in the CNCT console under **Settings → Developers**. |
 | `CnctOperatorToken('…')`            | The contact directory    | A staff app, from a person's own login. Eight hours, carrying that person's role. |
 
 The SDK will tell you what it holds, which is useful for an app that hides the tabs it cannot serve
@@ -75,6 +81,50 @@ rather than discovering the answer with a 401 in front of a customer:
 ```dart
 Cnct.modulesFor(credentials); // {CnctModule.chat} | {bookings, tickets} | {contacts}
 ```
+
+---
+
+## Sandbox and production
+
+An API key comes in two kinds, and the key says which. The account's owner or an admin mints either
+in the CNCT console, under **Settings → Developers**.
+
+|                      | Sandbox — `kaer_sk_test_…`                             | Production — `kaer_sk_live_…`         |
+| -------------------- | ------------------------------------------------------ | ------------------------------------- |
+| Reads                | The real account: services, people, hours, what's free | The same                              |
+| Book, move, cancel   | Kept in the account's sandbox, and findable again      | The real calendar                     |
+| Raise a ticket       | Kept in the sandbox, numbered from 1                   | The real queue                        |
+| Customers            | Never contacted, never looked up, never created        | Texted and filed as the account's own |
+| Seen by the business | Never — not the calendar, the queue or the reports     | Everywhere                            |
+
+Everything else is identical, and deliberately: a sandbox key runs **the same tools, the same
+validation and the same refusals** as production — a time that is not free, a ticket field that does
+not exist, a change inside the cancellation window are refused in production's own words. So an
+integration that works in sandbox is an integration that works, and going live is swapping the key.
+
+```dart
+final key = CnctApiKey(Platform.environment['CNCT_API_KEY']!);
+key.mode;      // CnctKeyMode.sandbox | CnctKeyMode.production
+key.isSandbox; // true for kaer_sk_test_…
+
+final agent = Cnct().agent(key);
+final booking = await agent.bookings.create(startsAt: startsAt, customerPhone: '+97312345678');
+booking.sandbox; // true — kept so you can find, move and cancel it, but nobody will ever see it
+```
+
+`agent.mode` says the same thing before anything is sent. Keys minted before there were two kinds
+are plain `kaer_sk_…`, and are production.
+
+Two things worth knowing:
+
+- **A sandbox booking does not take its slot.** Availability is the real calendar's, so the same free
+  time can be booked twice in sandbox. It is the one place sandbox is less faithful than production,
+  and it is on purpose: taking the slot would block a real customer.
+- **One sandbox per account**, shared by all its sandbox keys. Settings → Developers says what it
+  holds and empties it.
+
+Live chat has no sandbox mode — its credential is an inbox's public key, not an API key. To build a
+chat screen without landing in the team's real queue, ask for a second web inbox and use its key.
 
 ---
 
@@ -190,10 +240,10 @@ spot of the channel, and `start(phone: …)` is the way around it today.
 
 ## Bookings and tickets
 
-Server-side, on the API key.
+Server-side, on the API key — a sandbox one (`kaer_sk_test_…`) while you build.
 
 ```dart
-final agent = cnct.agent(CnctApiKey(Platform.environment['CNCT_API_KEY']!));
+final agent = Cnct().agent(CnctApiKey(Platform.environment['CNCT_API_KEY']!));
 
 final day = await agent.bookings.checkAvailability(date: '2026-09-15', partySize: 4);
 if (day.isEmpty) {

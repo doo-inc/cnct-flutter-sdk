@@ -33,7 +33,7 @@ enum CnctModule {
 /// the host lives.
 ///
 /// ```dart
-/// final cnct = Cnct(config: CnctConfig(baseUrl: CnctHosts.development));
+/// final cnct = Cnct(); // https://app.doo.ooo
 /// final chat = cnct.chat(CnctChatPublicKey('inbox-public-key'));
 /// ```
 ///
@@ -45,7 +45,8 @@ enum CnctModule {
 /// final staging = cnct.withBaseUrl('https://staging.example.com');
 /// ```
 class Cnct {
-  Cnct({required this.config});
+  /// Production, `https://app.doo.ooo`, unless [config] says otherwise.
+  Cnct({CnctConfig? config}) : config = config ?? CnctConfig();
 
   /// The short form, for the common case of a host and nothing else.
   Cnct.host(Object baseUrl) : config = CnctConfig(baseUrl: baseUrl);

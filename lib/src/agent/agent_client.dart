@@ -13,7 +13,7 @@ import 'agent_models.dart';
 ///
 /// ```dart
 /// final agent = CnctAgentClient(
-///   config: CnctConfig(baseUrl: CnctHosts.development),
+///   config: CnctConfig(), // https://app.doo.ooo
 ///   credentials: CnctApiKey(Platform.environment['CNCT_API_KEY']!),
 /// );
 /// final day = await agent.bookings.checkAvailability(date: '2026-09-12', partySize: 4);
@@ -31,13 +31,17 @@ class CnctAgentClient {
     required CnctApiKey credentials,
     CnctTransport? transport,
   })  : _transport = transport ?? CnctTransport(config: config),
-        _headers = credentials.headers {
+        _headers = credentials.headers,
+        mode = credentials.mode {
     bookings = CnctBookings._(this);
     tickets = CnctTickets._(this);
   }
 
   final CnctTransport _transport;
   final Map<String, String> _headers;
+
+  /// [CnctKeyMode.sandbox] for a `kaer_sk_test_` key — see [CnctApiKey].
+  final CnctKeyMode mode;
 
   /// The calendar.
   late final CnctBookings bookings;
