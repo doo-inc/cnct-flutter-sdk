@@ -1,6 +1,6 @@
 name: cnct_flutter_sdk
 description: The official CNCT SDK for Flutter and Dart — live chat, contacts, bookings and tickets against a CNCT workspace, using the credentials CNCT issues you.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/doo-inc/cnct-flutter-sdk
 issue_tracker: https://github.com/doo-inc/cnct-flutter-sdk/issues
 

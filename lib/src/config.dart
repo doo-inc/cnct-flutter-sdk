@@ -42,7 +42,7 @@ class CnctConfig {
   }) : baseUrl = _normalise(baseUrl ?? CnctHosts.production);
 
   /// The version this SDK reports in its `User-Agent`. Kept in step with `pubspec.yaml`.
-  static const sdkVersion = '0.1.0';
+  static const sdkVersion = '0.2.0';
 
   /// The CNCT host, with an optional path prefix. Defaults to [CnctHosts.production],
   /// `https://app.doo.ooo`.
