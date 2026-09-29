@@ -64,7 +64,7 @@ requests, and silently re-pointing those mid-conversation would be worse than ma
 
 ---
 
-## Three credentials, three doors
+## Two credentials, two doors
 
 Which parts of this SDK you can use is decided entirely by what CNCT gave you. They are not
 interchangeable, and the difference is not convenience — it is what happens when one leaks.
@@ -73,14 +73,20 @@ interchangeable, and the difference is not convenience — it is what happens wh
 | ----------------------------------- | ------------------------ | ------------------------------------------------------- |
 | `CnctChatPublicKey('…')`            | Live chat, as a visitor  | **Inside your app.** It identifies an inbox, not a person, and it is already public — it is in the URL of the hosted chat page. |
 | `CnctApiKey('kaer_sk_…')`           | Bookings and tickets     | **On a server you control.** It is account-wide: it can book for, and cancel for, anybody. Mint one in the CNCT console under **Settings → Developers**. |
-| `CnctOperatorToken('…')`            | The contact directory    | A staff app, from a person's own login. Eight hours, carrying that person's role. |
 
 The SDK will tell you what it holds, which is useful for an app that hides the tabs it cannot serve
 rather than discovering the answer with a 401 in front of a customer:
 
 ```dart
-Cnct.modulesFor(credentials); // {CnctModule.chat} | {bookings, tickets} | {contacts}
+Cnct.modulesFor(credentials); // {CnctModule.chat} | {bookings, tickets}
 ```
+
+Tickets also need the account to hold ticketing. `agent.catalogue()` lists exactly the tools a
+particular account offers, so read that rather than assuming.
+
+0.1.0 had a third, `CnctOperatorToken`, for the contact directory on a staff member's own login. It
+is gone in 0.2.0: a person's login is not an integration credential. See the
+[changelog](CHANGELOG.md).
 
 ---
 
@@ -288,6 +294,49 @@ final ticket = await agent.tickets.create(
 );
 ```
 
+### Following a ticket up
+
+Most of what happens to a ticket after it is raised is the customer asking about it, or telling you
+something new. All three of these are scoped to the customer's own number:
+
+```dart
+// "Any news on my refund?"
+final open = await agent.tickets.forCustomer(phone, q: 'refund');
+final ticket = await agent.tickets.get(phone, open.items.first.ticketNumber);
+ticket.status; // 'WAITING'
+ticket.waitingOnCustomer; // true — the business is waiting on an answer from them
+for (final line in ticket.history) print('${line.on}  ${line.what}');
+
+// "The order number is 881"
+final added = await agent.tickets.addTo(
+  customerPhone: phone,
+  ticketNumber: ticket.ticketNumber,
+  note: 'The order number is 881',
+);
+added.resumed; // true — it was waiting on them, and is being worked on again
+```
+
+**`get` is safe to show the customer it belongs to** — no person's name on any line, no team, and
+none of the notes staff write for each other. Somebody else's ticket number is refused exactly as a
+number that does not exist is.
+
+**`addTo` instead of a second ticket.** A follow-up belongs on the ticket it is about. If that ticket
+was waiting on the customer it goes back to being worked on; a resolved, closed or cancelled one
+refuses with `toolRefused`, and the refusal says to raise a new one. The same words twice within ten
+minutes are kept once, so a retry is safe. Both need a CNCT host from 2026-09-29 or later —
+`app.doo.ooo` is one.
+
+`forCustomer` also takes `ticketNumber:` and `includeResolved: true`.
+
+### The same tools, for an AI agent
+
+This SDK is the REST side, at `/api/tools`. The same key opens the same tools over MCP, at
+**`https://app.doo.ooo/api/mcp`** with the key as a bearer token — point any MCP client there and it
+discovers them on its own. MCP also carries one tool REST does not: `request_operator`, for handing a
+live phone call to a person.
+
+### Worth knowing
+
 **An empty list is often an instruction rather than an absence.** `bookings.people()` coming back
 empty with a note means the business assigns whoever is free and you must not offer a choice of
 person. Read `note`.
@@ -295,46 +344,6 @@ person. Read `note`.
 **A tool that declines answers `200` with a sentence.** The typed methods raise those as
 `CnctException` with `CnctErrorCode.toolRefused`; `agent.call(name, args)` hands the raw map back
 instead, and reaches any tool the platform adds after this SDK was published.
-
----
-
-## Contacts
-
-On an operator's login.
-
-```dart
-final result = await cnct.auth.login(email: '…', password: '…');
-final session = result.session ?? await cnct.auth.verifyMfa(
-  mfaToken: result.challenge!.mfaToken,
-  code: codeFromTheirScreen,
-);
-
-final contacts = cnct.contacts(session.credentials);
-
-var page = await contacts.list(query: 'layla', limit: 50);
-print('${page.contacts.length} of ${page.total}');
-while (page.hasMore) {
-  page = await contacts.list(query: 'layla', cursor: page.nextCursor);
-}
-```
-
-An MFA challenge is a returned value rather than an exception, because for an account with a second
-factor it is the ordinary path. A person with seats in more than one account throws
-`CnctChooseOrganization`, carrying the list to put in front of them.
-
-Paging is by cursor, never offset: every inbound message touches the contact it belongs to, so the
-order is being rewritten while somebody scrolls it. `nextCursor == null` is the end, and a short page
-never issues one, so a list cannot spin on a final request that returns nothing. `listAll()` follows
-the cursors for you — with the obvious caveat that an account with twenty-five thousand contacts will
-happily give you all of them.
-
-**A contact needs an identity**: a phone number, an email address, or your own `identifier`. A name
-is not one of them — two people called Ahmed are two people. A collision throws
-`CnctContactConflict` naming who it collided with, so you can offer to open that record rather than
-sending somebody to the search box for a person they were just told is there.
-
-Correcting somebody's number is `merge`, not an edit — and never do it speculatively: a shared
-household number is not proof that two histories belong to one person.
 
 ---
 
@@ -366,7 +375,7 @@ message. The socket counts the same thirty the HTTP path does, so moving between
 
 **On Flutter web, only chat works out of the box.** `/api/chat/public/*` is open to every origin; the
 rest of the platform is pinned to the host's configured `CORS_ORIGIN`, so a web build reaching
-contacts or bookings needs that origin allowed on the server. Mobile and desktop builds are not
+bookings or tickets needs that origin allowed on the server. Mobile and desktop builds are not
 subject to this, and neither is a Dart backend — which is where the API key belongs anyway.
 
 ---

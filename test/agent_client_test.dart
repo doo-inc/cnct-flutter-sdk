@@ -14,7 +14,7 @@ void main() {
     final config = CnctConfig(baseUrl: 'https://cnct.test');
     final mock = MockClient((request) async {
       seen.add(request);
-      if (request.url.path == '/api/booking-tools') {
+      if (request.url.path == '/api/tools') {
         return http.Response(
           jsonEncode(catalogue ??
               {
@@ -254,6 +254,106 @@ void main() {
     final sent = jsonDecode(seen.single.body) as Map<String, dynamic>;
     expect(sent['idempotencyKey'], 'attempt-1');
     expect(sent['fields'], {'flat': '12B'});
+    agent.close();
+  });
+
+  test('every call goes to /api/tools, not the old /api/booking-tools', () async {
+    final agent = clientWith((tool, args) => {'services': <Object>[]});
+    await agent.catalogue();
+    await agent.bookings.services();
+    expect(seen.map((request) => request.url.path), ['/api/tools', '/api/tools/list_services']);
+    agent.close();
+  });
+
+  test('a customer’s tickets can be narrowed, and nothing unasked-for is sent', () async {
+    final agent = clientWith((tool, args) => {'tickets': <Object>[]});
+
+    await agent.tickets.forCustomer('+97312345678', q: 'refund', includeResolved: true);
+    expect(jsonDecode(seen.last.body), {
+      'customerPhone': '+97312345678',
+      'q': 'refund',
+      'includeResolved': true,
+    });
+
+    await agent.tickets.forCustomer('+97312345678');
+    expect(jsonDecode(seen.last.body), {'customerPhone': '+97312345678'});
+    agent.close();
+  });
+
+  test('one ticket reads as the customer may see it', () async {
+    final agent = clientWith((tool, args) => {
+          'ticketNumber': 1042,
+          'title': 'Refund not received',
+          'kind': 'Refund',
+          'status': 'WAITING',
+          'waitingOnCustomer': true,
+          'raised': '2026-09-18',
+          'details': [
+            {'name': 'Order number', 'value': '881'},
+          ],
+          'history': [
+            {'on': '2026-09-18', 'what': 'Raised'},
+            {'on': '2026-09-19', 'what': 'Waiting on the customer'},
+          ],
+          'note': 'This is waiting on the customer.',
+        });
+
+    final ticket = await agent.tickets.get('+97312345678', 1042);
+
+    expect(seen.single.url.path, '/api/tools/get_ticket');
+    expect(jsonDecode(seen.single.body), {'customerPhone': '+97312345678', 'ticketNumber': 1042});
+    expect(ticket.status, 'WAITING');
+    expect(ticket.waitingOnCustomer, isTrue);
+    expect(ticket.kind, 'Refund');
+    expect(ticket.details.single.name, 'Order number');
+    expect(ticket.details.single.value, '881');
+    expect(ticket.history.map((line) => line.what), ['Raised', 'Waiting on the customer']);
+    expect(ticket.resolved, isNull);
+    agent.close();
+  });
+
+  test('a ticket that is not theirs is a refusal, not an empty ticket', () async {
+    final agent = clientWith((tool, args) => {'error': 'No ticket #9 belongs to them.'});
+
+    await expectLater(
+      agent.tickets.get('+97312345678', 9),
+      throwsA(isA<CnctException>()
+          .having((error) => error.code, 'code', CnctErrorCode.toolRefused)
+          .having((error) => error.message, 'message', 'No ticket #9 belongs to them.')),
+    );
+    agent.close();
+  });
+
+  test('a follow-up lands on the ticket and says when it started it moving again', () async {
+    final agent = clientWith((tool, args) => {'ok': true, 'resumed': true, 'note': 'Added.'});
+
+    final added = await agent.tickets.addTo(
+      customerPhone: '+97312345678',
+      ticketNumber: 1042,
+      note: 'The order number is 881',
+    );
+
+    expect(seen.single.url.path, '/api/tools/add_to_ticket');
+    expect(jsonDecode(seen.single.body), {
+      'customerPhone': '+97312345678',
+      'ticketNumber': 1042,
+      'note': 'The order number is 881',
+    });
+    // The number comes back even when the platform's answer leaves it out.
+    expect(added.ticketNumber, 1042);
+    expect(added.resumed, isTrue);
+    agent.close();
+  });
+
+  test('a finished ticket refuses a follow-up in the platform’s own words', () async {
+    final agent = clientWith((tool, args) => {'error': 'Not added. #7 is resolved.'});
+
+    await expectLater(
+      agent.tickets.addTo(customerPhone: '+97312345678', ticketNumber: 7, note: 'Again'),
+      throwsA(isA<CnctException>()
+          .having((error) => error.code, 'code', CnctErrorCode.toolRefused)
+          .having((error) => error.message, 'message', 'Not added. #7 is resolved.')),
+    );
     agent.close();
   });
 

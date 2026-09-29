@@ -333,7 +333,7 @@ class CnctRaisedTicket {
   final bool sandbox;
 }
 
-/// One of a customer's open tickets.
+/// One of a customer's tickets.
 class CnctTicketSummary {
   const CnctTicketSummary({
     required this.ticketNumber,
@@ -355,6 +355,124 @@ class CnctTicketSummary {
 
   /// The date it was raised, `YYYY-MM-DD`.
   final String? raised;
+}
+
+/// One line of a ticket's story, in words a customer can be told. Never who did it.
+class CnctTicketMilestone {
+  const CnctTicketMilestone({required this.on, required this.what});
+
+  factory CnctTicketMilestone.fromJson(Map<String, dynamic> json) => CnctTicketMilestone(
+        on: json['on'] as String? ?? '',
+        what: json['what'] as String? ?? '',
+      );
+
+  /// `YYYY-MM-DD`.
+  final String on;
+
+  /// "Raised", "Being worked on", "Waiting on the customer", "The customer added: …".
+  final String what;
+}
+
+/// One of a ticket type's own fields, as it was filled in, labelled by its display name.
+class CnctTicketDetailField {
+  const CnctTicketDetailField({required this.name, required this.value});
+
+  factory CnctTicketDetailField.fromJson(Map<String, dynamic> json) => CnctTicketDetailField(
+        name: json['name'] as String? ?? '',
+        value: json['value'],
+      );
+
+  final String name;
+  final Object? value;
+}
+
+/// One of a customer's tickets, as the customer may see it.
+///
+/// What is missing is deliberate: no person's name anywhere, no team, and none of the notes a
+/// business writes for its own staff. It is safe to show to the customer it belongs to — and only
+/// to them.
+class CnctTicketDetail {
+  const CnctTicketDetail({
+    required this.ticketNumber,
+    required this.title,
+    required this.kind,
+    required this.status,
+    required this.waitingOnCustomer,
+    required this.raised,
+    required this.resolved,
+    required this.closed,
+    required this.customerRequest,
+    required this.desiredOutcome,
+    required this.details,
+    required this.history,
+    required this.note,
+  });
+
+  factory CnctTicketDetail.fromJson(Map<String, dynamic> json) => CnctTicketDetail(
+        ticketNumber: (json['ticketNumber'] as num?)?.toInt() ?? 0,
+        title: json['title'] as String? ?? '',
+        kind: json['kind'] as String?,
+        status: json['status'] as String? ?? '',
+        waitingOnCustomer: json['waitingOnCustomer'] as bool? ?? false,
+        raised: json['raised'] as String?,
+        resolved: json['resolved'] as String?,
+        closed: json['closed'] as String?,
+        customerRequest: json['customerRequest'] as String?,
+        desiredOutcome: json['desiredOutcome'] as String?,
+        details: ((json['details'] as List<Object?>?) ?? const [])
+            .whereType<Map<Object?, Object?>>()
+            .map((item) => CnctTicketDetailField.fromJson(item.cast<String, dynamic>()))
+            .toList(growable: false),
+        history: ((json['history'] as List<Object?>?) ?? const [])
+            .whereType<Map<Object?, Object?>>()
+            .map((item) => CnctTicketMilestone.fromJson(item.cast<String, dynamic>()))
+            .toList(growable: false),
+        note: json['note'] as String?,
+      );
+
+  final int ticketNumber;
+  final String title;
+
+  /// The kind of work, by the business's own name for it.
+  final String? kind;
+
+  /// `OPEN`, `IN_PROGRESS`, `WAITING`, `RESOLVED`, `CLOSED` or `CANCELLED`.
+  final String status;
+
+  /// True when the business is waiting on the customer — for an answer, a photo, a time. Ask them
+  /// what is needed and pass it on with [CnctTickets.addTo], which starts the ticket moving again.
+  final bool waitingOnCustomer;
+
+  /// `YYYY-MM-DD`.
+  final String? raised;
+  final String? resolved;
+  final String? closed;
+  final String? customerRequest;
+  final String? desiredOutcome;
+
+  /// The ticket type's own fields, labelled by their display names.
+  final List<CnctTicketDetailField> details;
+  final List<CnctTicketMilestone> history;
+
+  /// How to talk about it — worth following, it is written for exactly that.
+  final String? note;
+}
+
+/// What happened to a follow-up passed on with [CnctTickets.addTo].
+class CnctTicketFollowUp {
+  const CnctTicketFollowUp({required this.ticketNumber, required this.resumed, required this.note});
+
+  factory CnctTicketFollowUp.fromJson(Map<String, dynamic> json) => CnctTicketFollowUp(
+        ticketNumber: (json['ticketNumber'] as num?)?.toInt() ?? 0,
+        resumed: json['resumed'] as bool? ?? false,
+        note: json['note'] as String?,
+      );
+
+  final int ticketNumber;
+
+  /// True when the ticket was waiting on the customer and is now being worked on again.
+  final bool resumed;
+  final String? note;
 }
 
 /// A list, plus what the platform said about it.

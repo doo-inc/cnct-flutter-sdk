@@ -3,7 +3,7 @@ import 'exception.dart';
 /// A credential CNCT issued you, and the only thing that decides which parts of this SDK you can
 /// use.
 ///
-/// There are three, they are not interchangeable, and the difference between them is not
+/// There are two, they are not interchangeable, and the difference between them is not
 /// convenience — it is what happens when one leaks. Each subclass says what it opens and where it
 /// is safe to keep it.
 sealed class CnctCredentials {
@@ -120,38 +120,6 @@ final class CnctApiKey extends CnctCredentials {
       code: CnctErrorCode.invalid,
     );
   }
-}
-
-/// An operator's console session — the credential behind contacts and the rest of the account
-/// surface.
-///
-/// It is a person's login, eight hours long, and it carries whatever that person's role allows. Use
-/// it for back-office tools, internal apps and integrations run by staff. It is the wrong credential
-/// for anything a customer holds.
-///
-/// Obtain one with `CnctOperatorAuth.login(...)`, or pass a token you already have.
-final class CnctOperatorToken extends CnctCredentials {
-  CnctOperatorToken(this.token, {this.expiresAt}) {
-    if (token.trim().isEmpty) {
-      throw CnctException('An operator token cannot be empty.', code: CnctErrorCode.invalid);
-    }
-  }
-
-  final String token;
-
-  /// When this stops working, where the caller knows. The server issues eight-hour tokens; this is
-  /// filled in by `CnctOperatorAuth.login` and left null for a token handed in from elsewhere.
-  final DateTime? expiresAt;
-
-  /// True once [expiresAt] has passed. Null [expiresAt] answers false — an unknown expiry is not an
-  /// expired one, and guessing would log people out of a session that still works.
-  bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
-
-  @override
-  Map<String, String> get headers => {'authorization': 'Bearer $token'};
-
-  @override
-  String get redacted => 'operator:${_tail(token)}';
 }
 
 /// The last four characters, which is enough to tell two credentials apart in a log and not enough

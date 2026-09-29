@@ -138,9 +138,9 @@ class CnctTransport {
     String? serverCode;
 
     if (decoded is Map) {
-      // The whole body, always. A refusal often carries more than a sentence — the contact you
-      // collided with, the accounts you have a seat in, the fields that failed validation — and a
-      // transport that keeps only the message throws that away at the one moment it is useful.
+      // The whole body, always. A refusal often carries more than a sentence — what a tool
+      // answered, the fields that failed validation — and a transport that keeps only the message
+      // throws that away at the one moment it is useful.
       details = decoded;
       final error = decoded['error'];
       if (error is String) {
