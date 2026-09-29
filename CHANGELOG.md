@@ -16,6 +16,20 @@
   `kaer_sk_`, so 0.1.0 accepts the new keys unchanged.
 - Keys are minted by the account's owner or an admin in the CNCT console, under **Settings →
   Developers**.
+- **Following up on a ticket.** `agent.tickets.get(phone, ticketNumber)` reads one of a customer's
+  tickets as they may see it — status, whether it waits on them, their request, its fields and a
+  plain history (`CnctTicketDetail`, `CnctTicketMilestone`), with no names and no staff notes.
+  `agent.tickets.addTo(customerPhone:, ticketNumber:, note:)` passes their follow-up on to the open
+  ticket instead of raising a second one, and starts a ticket that was waiting on them moving again
+  (`CnctTicketFollowUp.resumed`). Both need a CNCT host from 2026-09-29 on.
+- `agent.tickets.forCustomer(phone, q:, ticketNumber:, includeResolved:)` passes the options the
+  platform always accepted.
+- **The agent client calls `/api/tools`.** CNCT still answers the old `/api/booking-tools`.
+- **Breaking: the operator token and contacts are removed** — `CnctOperatorToken`,
+  `CnctContactsClient`, `CnctOperatorAuth`, `Cnct.contacts`, `Cnct.auth`, `CnctModule.contacts` and the
+  contact models. They made a staff member's own eight-hour login into an integration credential. For a
+  customer's bookings or tickets, an API key already does this by phone number; for the rest of the
+  contact directory there is no key-based surface yet.
 
 ## 0.1.0
 

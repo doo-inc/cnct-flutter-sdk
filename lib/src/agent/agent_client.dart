@@ -57,7 +57,7 @@ class CnctAgentClient {
   /// Filtered per account: an account without ticketing is not shown ticket tools. Read this rather
   /// than assuming — it is also the cheapest way to check a key works.
   Future<({List<CnctTool> tools, CnctBookingRules rules})> catalogue() async {
-    final json = await _transport.get('/api/booking-tools', headers: _headers);
+    final json = await _transport.get('/api/tools', headers: _headers);
     final map = _map(json);
     return (
       tools: ((map['tools'] as List<Object?>?) ?? const [])
@@ -77,7 +77,7 @@ class CnctAgentClient {
   /// hands that back for you to read. Use [callOrThrow] for the other behaviour.
   Future<Map<String, dynamic>> call(String tool, [Map<String, dynamic> args = const {}]) async {
     final json = await _transport.post(
-      '/api/booking-tools/${Uri.encodeComponent(tool)}',
+      '/api/tools/${Uri.encodeComponent(tool)}',
       body: args,
       headers: _headers,
     );
@@ -295,15 +295,65 @@ class CnctTickets {
     return CnctRaisedTicket.fromJson(result);
   }
 
-  /// One customer's open tickets, found by their number. Never describe a ticket to anybody but the
-  /// person it belongs to.
-  Future<CnctListing<CnctTicketSummary>> forCustomer(String customerPhone) async {
-    final result = await _client.call('find_my_tickets', {'customerPhone': customerPhone});
+  /// One customer's tickets, found by their number — open ones unless [includeResolved]. Narrow
+  /// with [q] (a word from what it is about) or [ticketNumber]. Never describe a ticket to anybody
+  /// but the person it belongs to.
+  Future<CnctListing<CnctTicketSummary>> forCustomer(
+    String customerPhone, {
+    String? q,
+    int? ticketNumber,
+    bool includeResolved = false,
+  }) async {
+    final result = await _client.call('find_my_tickets', {
+      'customerPhone': customerPhone,
+      if (q != null) 'q': q,
+      if (ticketNumber != null) 'ticketNumber': ticketNumber,
+      if (includeResolved) 'includeResolved': true,
+    });
     return CnctListing(
       items: _items(result, 'tickets', CnctTicketSummary.fromJson),
       note: result['note'] as String?,
       refusal: result['error'] as String?,
     );
+  }
+
+  /// One of this customer's tickets in detail, as the customer may see it: its status, whether it
+  /// is waiting on them, what they asked for, the details on it and what has happened so far.
+  ///
+  /// There are no names in it — not who is handling it, not who moved it — and none of the notes
+  /// the team writes for each other. Somebody else's ticket number is refused exactly as a number
+  /// that does not exist is, so this cannot be used to find out whether a ticket exists.
+  ///
+  /// Needs a CNCT host from 2026-09-29 or later (it serves `get_ticket`).
+  Future<CnctTicketDetail> get(String customerPhone, int ticketNumber) async {
+    final result = await _client.callOrThrow('get_ticket', {
+      'customerPhone': customerPhone,
+      'ticketNumber': ticketNumber,
+    });
+    return CnctTicketDetail.fromJson(result);
+  }
+
+  /// Pass something the customer said on to whoever is handling one of their open tickets — new
+  /// information, an answer to a question, "it got worse". **Use this rather than [create]** when
+  /// they are following up on something already open: a second ticket splits the story in two.
+  ///
+  /// If the ticket was waiting on the customer, this starts it moving again
+  /// ([CnctTicketFollowUp.resumed]). A resolved, closed or cancelled ticket refuses — raise a new
+  /// one that mentions the old number. The same words sent twice within ten minutes are kept once,
+  /// so a retry is safe.
+  ///
+  /// Needs a CNCT host from 2026-09-29 or later (it serves `add_to_ticket`).
+  Future<CnctTicketFollowUp> addTo({
+    required String customerPhone,
+    required int ticketNumber,
+    required String note,
+  }) async {
+    final result = await _client.callOrThrow('add_to_ticket', {
+      'customerPhone': customerPhone,
+      'ticketNumber': ticketNumber,
+      'note': note,
+    });
+    return CnctTicketFollowUp.fromJson({'ticketNumber': ticketNumber, ...result});
   }
 }
 

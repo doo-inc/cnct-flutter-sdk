@@ -1,12 +1,11 @@
 /// The official CNCT SDK for Flutter and Dart.
 ///
-/// Three credentials, three doors, and nothing in here renders anything:
+/// Two credentials, two doors, and nothing in here renders anything:
 ///
 /// | Credential            | Opens                        | Where it belongs                    |
 /// | --------------------- | ---------------------------- | ----------------------------------- |
 /// | [CnctChatPublicKey]   | Live chat, as a visitor      | Inside your app. It is already public. |
 /// | [CnctApiKey]          | Bookings and tickets         | On a server you control. Account-wide. |
-/// | [CnctOperatorToken]   | The contact directory        | A staff app, from a person's login. |
 ///
 /// Start with [Cnct], or construct a client directly. Everything points at the host in
 /// [CnctConfig.baseUrl] — production, `https://app.doo.ooo`, unless you say otherwise. Whether what
@@ -30,9 +29,6 @@ export 'src/chat/chat_models.dart';
 export 'src/chat/chat_state.dart';
 export 'src/cnct.dart';
 export 'src/config.dart';
-export 'src/contacts/contact_models.dart';
-export 'src/contacts/contacts_client.dart';
-export 'src/contacts/operator_auth.dart';
 export 'src/credentials.dart';
 export 'src/exception.dart';
 export 'src/token_store.dart';

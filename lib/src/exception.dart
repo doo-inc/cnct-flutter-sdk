@@ -19,9 +19,8 @@ class CnctException implements Exception {
 
   /// The server's whole error body, where it answered with one.
   ///
-  /// Worth reading: a refused contact carries the record it collided with, a login that needs an
-  /// account carries the list to choose from, and a validation refusal carries the fields under
-  /// `error` as `{fieldErrors, formErrors}`.
+  /// Worth reading: a refused tool call carries everything the tool answered, and a validation
+  /// refusal carries the fields under `error` as `{fieldErrors, formErrors}`.
   final Object? details;
 
   /// True when retrying later is reasonable: the network was down, the socket dropped mid-send, or
@@ -61,9 +60,8 @@ abstract final class CnctErrorCode {
   /// The conversation has ended. Start a new one; it cannot be reopened from this side.
   static const conversationClosed = 'conversation_closed';
 
-  /// The request collided with something that already exists or has already moved on: a contact
-  /// with that number, a slot somebody else took, an operator who belongs to more than one account.
-  /// Never a reason to retry unchanged — the answer will be the same.
+  /// The request collided with something that already exists or has already moved on — a slot
+  /// somebody else took, say. Never a reason to retry unchanged — the answer will be the same.
   static const conflict = 'conflict';
 
   /// The session token now points at a different conversation than the one being written to.

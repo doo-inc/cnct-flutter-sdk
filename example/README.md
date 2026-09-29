@@ -9,12 +9,12 @@ cd example
 dart pub get
 CNCT_PUBLIC_KEY=… dart run bin/chat.dart
 CNCT_API_KEY=kaer_sk_test_… dart run bin/bookings.dart
-CNCT_EMAIL=… CNCT_PASSWORD=… dart run bin/contacts.dart
+CNCT_API_KEY=kaer_sk_test_… dart run bin/tickets.dart
 ```
 
 They go to CNCT production, `https://app.doo.ooo`, unless `CNCT_BASE_URL` says otherwise. Run the
-bookings one with a **sandbox** key (`kaer_sk_test_…`, from Settings → Developers in the CNCT console)
-and nothing it books is real.
+bookings and tickets ones with a **sandbox** key (`kaer_sk_test_…`, from Settings → Developers in the
+CNCT console) and nothing they book or raise is real.
 
 **`flutter_app/` is a real app** — a chat screen, wired to `shared_preferences` so a returning
 visitor comes back to their own thread:

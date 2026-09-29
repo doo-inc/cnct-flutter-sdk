@@ -96,7 +96,6 @@ void main() {
         Cnct.modulesFor(CnctApiKey('kaer_sk_abcdef')),
         {CnctModule.bookings, CnctModule.tickets},
       );
-      expect(Cnct.modulesFor(CnctOperatorToken('jwt')), {CnctModule.contacts});
     });
   });
 
@@ -113,17 +112,6 @@ void main() {
 
     test('a chat public key travels in the path, not in a header', () {
       expect(CnctChatPublicKey('pk').headers, isEmpty);
-    });
-
-    test('an operator token knows when it has expired', () {
-      final stale =
-          CnctOperatorToken('jwt', expiresAt: DateTime.now().subtract(const Duration(minutes: 1)));
-      final fresh =
-          CnctOperatorToken('jwt', expiresAt: DateTime.now().add(const Duration(hours: 1)));
-      expect(stale.isExpired, isTrue);
-      expect(fresh.isExpired, isFalse);
-      // An unknown expiry is not an expired one; guessing would sign somebody out of a live session.
-      expect(CnctOperatorToken('jwt').isExpired, isFalse);
     });
   });
 }
