@@ -6,13 +6,11 @@ which is the arrangement: it ships state and events, and the interface is yours.
 
 ```bash
 flutter pub get
-flutter run \
-  --dart-define=CNCT_BASE_URL=https://your-cnct-host \
-  --dart-define=CNCT_PUBLIC_KEY=your-inbox-public-key
+flutter run --dart-define=CNCT_PUBLIC_KEY=your-inbox-public-key
 ```
 
-Both are build flags rather than constants in the source. The host especially: it is the one value
-that changes between a laptop, a staging box and production.
+The key is a build flag rather than a constant in the source. The host is optional: without
+`--dart-define=CNCT_BASE_URL=…` the app talks to CNCT production, `https://app.doo.ooo`.
 
 Three files, and each is worth reading for a different reason:
 

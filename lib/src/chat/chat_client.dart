@@ -40,7 +40,7 @@ typedef CnctSocketFactory = WebSocketChannel Function(Uri url);
 ///
 /// ```dart
 /// final chat = CnctChatClient(
-///   config: CnctConfig(baseUrl: CnctHosts.development),
+///   config: CnctConfig(), // https://app.doo.ooo
 ///   credentials: CnctChatPublicKey('the-inbox-public-key'),
 /// );
 /// chat.states.listen(render);

@@ -46,7 +46,23 @@ final class CnctChatPublicKey extends CnctCredentials {
   String get redacted => 'publicKey:${_tail(publicKey)}';
 }
 
-/// A server-to-server API key, minted in the console under Integrations. Starts with `kaer_sk_`.
+/// Which kind of API key: one whose writes are real, or one whose writes are kept apart.
+enum CnctKeyMode {
+  /// `kaer_sk_test_…`: reads the account as it really is, and writes nothing real.
+  sandbox,
+
+  /// `kaer_sk_live_…`, and every key minted before there were two kinds (plain `kaer_sk_…`).
+  production,
+}
+
+/// A server-to-server API key, minted in the CNCT console under **Settings → Developers**. Starts
+/// with `kaer_sk_`.
+///
+/// **There are two kinds, and the key says which** — see [mode]. A sandbox key (`kaer_sk_test_…`)
+/// reads the account as it really is — services, people, hours, ticket types, what is free — but
+/// nothing it books, moves, cancels or raises is real: no customer is contacted and nothing appears
+/// in the business's calendar or queue, and every answer carries `sandbox: true`. A production key
+/// (`kaer_sk_live_…`) is real. Both go to the same host.
 ///
 /// **Do not ship this in an app.** It is account-wide: it can read and write bookings and tickets
 /// for every customer the account has, and a key inside an installed binary is a key anybody with
@@ -73,7 +89,21 @@ final class CnctApiKey extends CnctCredentials {
   /// greppable by the secret scanners that look for exactly this shape.
   static const prefix = 'kaer_sk_';
 
+  /// A sandbox key: reads the real account, writes nothing real.
+  static const sandboxPrefix = 'kaer_sk_test_';
+
+  /// A production key. Keys from before there were two kinds have neither segment, and are this.
+  static const productionPrefix = 'kaer_sk_live_';
+
   final String key;
+
+  /// Which kind of key this is, read from its prefix. The platform decides from its own records and
+  /// this can only agree with it: a key is minted with its prefix and never changes kind.
+  CnctKeyMode get mode =>
+      key.trim().startsWith(sandboxPrefix) ? CnctKeyMode.sandbox : CnctKeyMode.production;
+
+  /// True for a `kaer_sk_test_` key, whose writes are kept apart and are not real.
+  bool get isSandbox => mode == CnctKeyMode.sandbox;
 
   @override
   Map<String, String> get headers => {'authorization': 'Bearer $key'};

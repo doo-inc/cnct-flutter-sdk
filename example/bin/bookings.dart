@@ -7,14 +7,19 @@ import 'dart:io';
 import 'package:cnct_flutter_sdk/cnct_flutter_sdk.dart';
 
 Future<void> main(List<String> arguments) async {
+  // Optional: without it the SDK goes to CNCT production, https://app.doo.ooo.
   final baseUrl = Platform.environment['CNCT_BASE_URL'];
   final apiKey = Platform.environment['CNCT_API_KEY'];
-  if (baseUrl == null || apiKey == null) {
-    stderr.writeln('Set CNCT_BASE_URL and CNCT_API_KEY.');
+  if (apiKey == null) {
+    stderr.writeln('Set CNCT_API_KEY.');
     exit(64);
   }
 
-  final agent = Cnct.host(baseUrl).agent(CnctApiKey(apiKey));
+  final cnct = baseUrl == null ? Cnct() : Cnct.host(baseUrl);
+  final agent = cnct.agent(CnctApiKey(apiKey));
+  stdout.writeln(agent.mode == CnctKeyMode.sandbox
+      ? 'Sandbox key: nothing booked here is real.'
+      : 'PRODUCTION key: bookings made here are real.');
 
   // What this account may do, and the rules it works under. Also the cheapest check that a key works.
   final catalogue = await agent.catalogue();

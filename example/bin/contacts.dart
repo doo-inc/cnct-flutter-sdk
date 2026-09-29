@@ -7,15 +7,16 @@ import 'dart:io';
 import 'package:cnct_flutter_sdk/cnct_flutter_sdk.dart';
 
 Future<void> main(List<String> arguments) async {
+  // Optional: without it the SDK goes to CNCT production, https://app.doo.ooo.
   final baseUrl = Platform.environment['CNCT_BASE_URL'];
   final email = Platform.environment['CNCT_EMAIL'];
   final password = Platform.environment['CNCT_PASSWORD'];
-  if (baseUrl == null || email == null || password == null) {
-    stderr.writeln('Set CNCT_BASE_URL, CNCT_EMAIL and CNCT_PASSWORD.');
+  if (email == null || password == null) {
+    stderr.writeln('Set CNCT_EMAIL and CNCT_PASSWORD.');
     exit(64);
   }
 
-  final cnct = Cnct.host(baseUrl);
+  final cnct = baseUrl == null ? Cnct() : Cnct.host(baseUrl);
   final auth = cnct.auth;
 
   CnctOperatorSession session;

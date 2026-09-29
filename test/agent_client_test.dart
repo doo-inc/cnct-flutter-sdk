@@ -153,6 +153,41 @@ void main() {
     agent.close();
   });
 
+  test('a key knows which kind it is from its prefix', () {
+    expect(CnctApiKey('kaer_sk_test_abc').mode, CnctKeyMode.sandbox);
+    expect(CnctApiKey('kaer_sk_test_abc').isSandbox, isTrue);
+    expect(CnctApiKey('kaer_sk_live_abc').mode, CnctKeyMode.production);
+    // Minted before there were two kinds, and production.
+    expect(CnctApiKey('kaer_sk_mintedbeforemodes').mode, CnctKeyMode.production);
+  });
+
+  test('a sandbox booking and ticket say so, and a production one does not', () async {
+    final agent = clientWith((tool, args) => {
+          'ok': true,
+          'ticketNumber': 1,
+          'confirmed': true,
+          'bookingId': 'sbx_1',
+          'when': 'Tuesday 15 September at 19:30',
+          'sandbox': true,
+        });
+    final booking = await agent.bookings.create(
+      startsAt: '2026-09-15T16:30:00.000Z',
+      customerPhone: '+97312345678',
+    );
+    final ticket = await agent.tickets.create(
+      ticketTypeId: 'tt_1',
+      title: 'Leaking tap',
+      reasonUnresolved: 'Needs a plumber',
+    );
+    expect(booking.sandbox, isTrue);
+    expect(ticket.sandbox, isTrue);
+    expect(agent.mode, CnctKeyMode.production);
+    agent.close();
+
+    final real = CnctBookingConfirmation.fromJson(const {'bookingId': 'bkg_1', 'when': 'Today'});
+    expect(real.sandbox, isFalse);
+  });
+
   test('an empty list of people keeps the sentence that says why', () async {
     final agent = clientWith((tool, args) => {
           'people': <Object>[],

@@ -3,10 +3,13 @@ import 'package:cnct_flutter_sdk/cnct_flutter_sdk.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('without a host and a key, the app says how to supply them', (tester) async {
+  testWidgets('without a key, the app says how to supply one, and that the host is optional',
+      (tester) async {
     await tester.pumpWidget(ExampleApp(tokenStore: CnctTokenStore.memory()));
-    // Both are --dart-defines, so an unconfigured build must say so rather than fail at a request.
-    expect(find.textContaining('CNCT_BASE_URL'), findsOneWidget);
+    // The key is a --dart-define, so an unconfigured build must say so rather than fail at a request.
     expect(find.textContaining('CNCT_PUBLIC_KEY'), findsOneWidget);
+    // The host is not: without CNCT_BASE_URL the app talks to CNCT production.
+    expect(find.textContaining('CNCT_BASE_URL is optional'), findsOneWidget);
+    expect(find.textContaining('https://app.doo.ooo'), findsOneWidget);
   });
 }
