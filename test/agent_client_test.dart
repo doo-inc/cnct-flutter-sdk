@@ -318,7 +318,8 @@ void main() {
     await expectLater(
       agent.tickets.get('+97312345678', 9),
       throwsA(isA<CnctException>()
-          .having((error) => error.code, 'code', CnctErrorCode.toolRefused)),
+          .having((error) => error.code, 'code', CnctErrorCode.toolRefused)
+          .having((error) => error.message, 'message', 'No ticket #9 belongs to them.')),
     );
     agent.close();
   });
@@ -350,6 +351,7 @@ void main() {
     await expectLater(
       agent.tickets.addTo(customerPhone: '+97312345678', ticketNumber: 7, note: 'Again'),
       throwsA(isA<CnctException>()
+          .having((error) => error.code, 'code', CnctErrorCode.toolRefused)
           .having((error) => error.message, 'message', 'Not added. #7 is resolved.')),
     );
     agent.close();
