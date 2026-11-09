@@ -44,8 +44,9 @@ class CnctException implements Exception {
 /// The codes this SDK will not rename.
 ///
 /// The first block is the server's — `src/routes/chat-public.ts` and the visitor socket send these
-/// by name and they are documented as stable in the platform's own web SDK. The second block is
-/// this client's, for the failures that never reach a server.
+/// by name and they are documented as stable in the platform's own web SDK. The second names the
+/// refusals the server words only as a sentence and a status, so they are worth branching on too.
+/// The third is this client's, for the failures that never reach a server.
 abstract final class CnctErrorCode {
   // ── The server's ──────────────────────────────────────────────────────────────────────────────
   /// The request was malformed or failed validation. [CnctException.details] carries the fields.
@@ -54,7 +55,7 @@ abstract final class CnctErrorCode {
   /// Too many requests. Slow down; the limits are published in the README.
   static const rateLimited = 'rate_limited';
 
-  /// The message body was over the four-thousand-character limit.
+  /// Too big: a message over four thousand characters, or a file over 50 MB.
   static const tooLarge = 'too_large';
 
   /// The conversation has ended. Start a new one; it cannot be reopened from this side.
@@ -72,6 +73,25 @@ abstract final class CnctErrorCode {
 
   /// Something broke on the far side.
   static const serverError = 'server_error';
+
+  // ── Named here, for refusals the server words as a sentence and a status ──────────────────────
+  /// The chat takes no files: the inbox has attachments switched off (403), or the deployment
+  /// keeps no files at all (503). Hide the attach button rather than retrying.
+  static const attachmentsOff = 'attachments_off';
+
+  /// A file of a type the platform does not accept — HEIC among them. See `CnctAttachmentRules`.
+  static const unsupportedType = 'unsupported_type';
+
+  /// More files on one message than the platform takes (ten).
+  static const tooManyFiles = 'too_many_files';
+
+  /// `identify()` was called on an inbox with no identity secret set up (409). The visitor carries
+  /// on anonymously; the business needs to set the secret in the console.
+  static const identityNotConfigured = 'identity_not_configured';
+
+  /// `identify()` was refused because the hash did not verify (401). Almost always the hash was made
+  /// with the wrong secret, or over something other than the exact `userId` sent.
+  static const identityRejected = 'identity_rejected';
 
   // ── This client's ─────────────────────────────────────────────────────────────────────────────
   /// The network could not be reached at all, or a socket dropped before a frame was acknowledged.
@@ -97,6 +117,9 @@ abstract final class CnctErrorCode {
   /// The response was not the shape this SDK expects. Almost always a base URL pointing at
   /// something that is not a CNCT host.
   static const badResponse = 'bad_response';
+
+  /// An upload was taken back before it finished.
+  static const cancelled = 'cancelled';
 
   /// A module was used without the credential it needs.
   static const missingCredential = 'missing_credential';

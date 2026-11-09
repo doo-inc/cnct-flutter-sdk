@@ -23,7 +23,8 @@ library;
 
 export 'src/agent/agent_client.dart';
 export 'src/agent/agent_models.dart';
-export 'src/chat/chat_client.dart' show CnctChatClient, CnctSocketFactory;
+export 'src/chat/attachments.dart' show CnctAttachmentRules, CnctUpload, CnctUploadFile;
+export 'src/chat/chat_client.dart' show CnctChatClient, CnctSocketFactory, CnctTimeZoneResolver;
 export 'src/chat/chat_events.dart';
 export 'src/chat/chat_models.dart';
 export 'src/chat/chat_state.dart';

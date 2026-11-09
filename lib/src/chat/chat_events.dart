@@ -32,6 +32,20 @@ class CnctChatMessageReceived extends CnctChatEvent {
   final CnctChatMessage message;
 }
 
+/// A message already in the transcript changed — edited, deleted, or a file finished storing. Already
+/// replaced in place in [CnctChatState.messages] by the time this is emitted.
+class CnctChatMessageUpdated extends CnctChatEvent {
+  const CnctChatMessageUpdated(this.message);
+  final CnctChatMessage message;
+}
+
+/// The team has read the visitor's messages up to [at] — the moment to show "Seen". Already in
+/// [CnctChatConversation.seenAt].
+class CnctChatRead extends CnctChatEvent {
+  const CnctChatRead(this.at);
+  final DateTime at;
+}
+
 /// The other side is typing.
 class CnctChatTypingReceived extends CnctChatEvent {
   const CnctChatTypingReceived();

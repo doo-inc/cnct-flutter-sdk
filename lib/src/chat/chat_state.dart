@@ -55,7 +55,7 @@ class CnctChatState {
   /// The last failure, or null. Cleared by the next success.
   final CnctException? error;
 
-  /// True when there is a conversation to type into.
+  /// True when there is a conversation to type into. Offline counts: sends still go over HTTP.
   bool get canSend =>
       status != CnctChatStatus.idle &&
       status != CnctChatStatus.ended &&
@@ -64,6 +64,45 @@ class CnctChatState {
   /// Messages that failed to send and are waiting for a retry.
   List<CnctChatMessage> get failed =>
       messages.where((message) => message.failed).toList(growable: false);
+
+  /// The newest reply from the team or the assistant that the server has stored — the one a read
+  /// receipt is about.
+  CnctChatMessage? get lastReply {
+    for (final message in messages.reversed) {
+      if (message.speaker.isReply && message.id.isNotEmpty && !message.pending) return message;
+    }
+    return null;
+  }
+
+  /// **What a flow is waiting for, if anything**: the assistant's last message, when it is the last
+  /// thing said in a conversation still open and it offers choices or expects a kind of answer.
+  ///
+  /// Only ever the last thing said: once the visitor answers, or anybody says anything, the choices
+  /// go, as quick replies do everywhere. The flow still reads a typed answer, so nobody is stuck if
+  /// they would rather type.
+  CnctChatFlow? get awaiting {
+    if (!canSend || messages.isEmpty) return null;
+    final last = messages.last;
+    final flow = last.flow;
+    if (last.speaker != CnctSpeaker.ai || last.pending || flow == null || !last.drawsAsFlow) {
+      return null;
+    }
+    return flow.choices.isNotEmpty || flow.expects != null ? flow : null;
+  }
+
+  /// The short replies the assistant offered with its last answer, to show as chips.
+  ///
+  /// Read back over the assistant's trailing messages, because pictures it sent after its words
+  /// arrive as messages of their own and carry none. Empty once anybody else has spoken, and never
+  /// beside a flow's choices: one row of answers to tap at a time.
+  List<String> get suggestions {
+    if (!canSend || (awaiting?.choices.isNotEmpty ?? false)) return const [];
+    for (final message in messages.reversed) {
+      if (message.speaker != CnctSpeaker.ai) break;
+      if (message.suggestions.isNotEmpty) return message.suggestions;
+    }
+    return const [];
+  }
 
   CnctChatState copyWith({
     CnctChatStatus? status,
