@@ -16,13 +16,14 @@ They go to CNCT production, `https://app.doo.ooo`, unless `CNCT_BASE_URL` says o
 bookings and tickets ones with a **sandbox** key (`kaer_sk_test_…`, from Settings → Developers in the
 CNCT console) and nothing they book or raise is real.
 
-**`flutter_app/` is a real app** — a chat screen, wired to `shared_preferences` so a returning
-visitor comes back to their own thread:
+**`flutter_app/` is a real app** — the ready-made chat UI, with switches for language, appearance
+and a custom theme. Without a key it runs the fixture conversation, so it needs no account:
 
 ```bash
 cd example/flutter_app
 flutter pub get
-flutter run --dart-define=CNCT_PUBLIC_KEY=…
+flutter run                                   # the fixture
+flutter run --dart-define=CNCT_PUBLIC_KEY=…   # a live inbox
 ```
 
 Nothing here hard-codes a host or a credential. Both read them from the environment, which is the

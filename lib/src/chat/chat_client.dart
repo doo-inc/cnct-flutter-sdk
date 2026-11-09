@@ -27,10 +27,10 @@ typedef CnctTimeZoneResolver = FutureOr<String?> Function();
 
 /// Live chat with a CNCT inbox, from Flutter or plain Dart.
 ///
-/// **Headless on purpose.** There is no widget in here, not one, and that is the reason to reach for
-/// this rather than an embedded web view: a business building their own app has a design system
-/// already, and shipping them a bubble to restyle answers a question they did not ask. This ships
-/// state and events; the interface is yours.
+/// **Headless on purpose.** There is no widget in here, not one: this ships state and events, for a
+/// business whose app has a design system already. The ready-made screen is `cnct_flutter_ui`, in
+/// the same repository, built on exactly this API and nothing else — so anything it does, a screen
+/// of your own can do too.
 ///
 /// Three properties are load-bearing and you get them without having to know:
 ///

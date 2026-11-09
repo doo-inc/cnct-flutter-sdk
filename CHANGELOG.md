@@ -1,5 +1,61 @@
 # Changelog
 
+## 1.0.0
+
+Two packages from one repository, released together: the headless client, and a ready-made chat
+screen built on it. The same features, option names, theme tokens and words as the 1.0 web, iOS and
+Android SDKs — [`docs/chat-ui/SPEC.md`](docs/chat-ui/SPEC.md) is the shared contract.
+
+### `cnct_flutter_ui` — new
+
+- **A ready-made chat screen**: `CnctChat` to embed anywhere and `CnctChatPage` as a full-screen
+  route, on a client or a public key, with the spec's options — `theme`, `language`, `strings`,
+  `identity`, `onClose`, `onEvent`. Install it from git with `path: cnct_flutter_ui`; it brings the
+  headless package at the same commit and re-exports it.
+- **Theming** with `CnctChatTheme`: the spec's tokens, light and dark, decided as the app's, then the
+  inbox's console settings, then the defaults. The chat never reads or changes the app's `ThemeData`.
+- **English and Arabic** from the shared string table, the whole interface mirrored right to left,
+  each message in its own direction, phone numbers and links kept left to right, Latin digits.
+- **Attachments both ways**: photo library, camera and files through the system pickers; refused
+  with a sentence before upload when over the limits; HEIC/HEIF converted to JPEG and photos scaled
+  to 2560 px; progress per file; pictures inline with a zoomable viewer, other files to the share
+  sheet.
+- **Signed-in users** through `identity`, applied before anything is read.
+- Accessibility: labels in the chat's language, 48-point targets, the largest text sizes.
+- `lib/fixture.dart`: the fixture conversation every CNCT SDK renders, on a fake transport, for
+  tests, screenshots and the example app's no-key mode.
+
+### `cnct_flutter_sdk`
+
+- **The inbox** carries the console's `widget` settings, the `team` and `availability`.
+- **Attachments**: `upload()` — one multipart part named `file`, progress per file, cancellable,
+  from bytes or a stream — checked first by `CnctAttachmentRules`; `send(attachments:)` sends their
+  ids; downloads are cached by id.
+- **The rest of the visitor API**: `identify()`, `updateProfile()`, `conversations()`,
+  `conversation(id)`, `markRead()` (once per reply), `rate()`, and `choose()` for a flow's choices
+  (`send(replyId:)` underneath).
+- **The full message**: `sender`, `flow`, `suggestions`, `replyTo`; conversations gain `id`,
+  `assignee`, `seenAt`, `ratable`, `rating` and `closedAt`; the visitor `anonymous` and
+  `identified`; the state `awaiting`, `suggestions` and `lastReply`.
+- **Socket frames** `chat.message.updated` (replaced in place) and `chat.read` (`seenAt`).
+- **The session sends the device's time zone**, from a resolver given to the client or to
+  `Cnct.chat(timeZone:)`.
+- New error codes: `too_many_files`, `unsupported_type`, `attachments_off`, `cancelled`,
+  `identity_not_configured`, `identity_rejected`. `too_large` now also means a file over 50 MB.
+- A reconnect's reload keeps messages still in flight or failed, where it used to drop them.
+- `chat.conversation.updated` reads the change the server sends — `{status, withPerson, assignee}` —
+  as well as a whole conversation.
+
+### Changes to check when upgrading
+
+- `downloadAttachment()` returns `Future<Uint8List>`, which is still a `List<int>`.
+- A send answered 409 ends the conversation and removes its bubble, as the hosted chat does, instead
+  of leaving a retry that cannot succeed.
+- `send()` refuses more than 4,000 characters or ten files locally, with `too_large` and
+  `too_many_files`, rather than on the wire.
+- The example app is now the chat UI with switches for language, appearance and theme, and runs
+  the fixture without a key; the hand-built chat screen it replaces is gone.
+
 ## 0.2.0
 
 - **The host defaults to production, `https://app.doo.ooo`.** `CnctConfig.baseUrl` is optional and

@@ -1,17 +1,19 @@
 name: cnct_chat_example
-description: A chat screen built on the CNCT Flutter SDK.
+description: The CNCT chat UI in a Flutter app, with switches for language, appearance and theme.
 publish_to: none
-version: 0.1.0
+version: 1.0.0
 
 environment:
-  sdk: ^3.0.0
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
 
 dependencies:
   cnct_flutter_sdk:
     path: ../../
+  cnct_flutter_ui:
+    path: ../../cnct_flutter_ui
   flutter:
     sdk: flutter
-  shared_preferences: ^2.3.0
 
 dev_dependencies:
   flutter_lints: ^5.0.0
