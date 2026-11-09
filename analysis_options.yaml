@@ -10,6 +10,9 @@ analyzer:
     always_declare_return_types: error
     public_member_api_docs: ignore
   exclude:
+    # Flutter packages, analysed by their own CI jobs with `flutter analyze`. This one has no
+    # Flutter, and would only report Flutter's imports as missing.
+    - cnct_flutter_ui/**
     - example/flutter_app/**
 
 linter:

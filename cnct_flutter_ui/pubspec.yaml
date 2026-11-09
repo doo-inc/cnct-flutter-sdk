@@ -1,0 +1,43 @@
+name: cnct_flutter_ui
+description: A ready-made, brandable chat screen for CNCT live chat in Flutter — English and Arabic, right to left, and photos and files both ways. Built on cnct_flutter_sdk.
+version: 1.0.0
+repository: https://github.com/doo-inc/cnct-flutter-sdk/tree/main/cnct_flutter_ui
+issue_tracker: https://github.com/doo-inc/cnct-flutter-sdk/issues
+# Installed from git, pinned to a tag, alongside the headless package in the same checkout. Never
+# published to pub.dev from here: the path dependency below would refuse it anyway.
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  # The headless client, from the same checkout — so the UI and the client it is built on can never
+  # be two different versions.
+  cnct_flutter_sdk:
+    path: ../
+  cross_file: ">=0.3.4 <0.5.0"
+  file_selector: ^1.0.3
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_timezone: ^5.0.0
+  http: ^1.2.0
+  image: ^4.2.0
+  image_picker: ^1.1.2
+  intl: ">=0.19.0 <0.21.0"
+  path_provider: ^2.1.4
+  share_plus: ">=11.0.0 <14.0.0"
+  shared_preferences: ^2.3.0
+  stream_channel: ^2.1.2
+  url_launcher: ^6.3.0
+  web_socket_channel: ^3.0.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
