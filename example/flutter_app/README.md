@@ -1,23 +1,20 @@
-# CNCT chat, as a real screen
+# CNCT chat, in a Flutter app
 
-A working chat interface built on `cnct_flutter_sdk`, and deliberately an ordinary one — the bubbles,
-the composer, the retry button and the cards are all this app's. Nothing here comes from the SDK,
-which is the arrangement: it ships state and events, and the interface is yours.
+The chat UI from `cnct_flutter_ui` in a real app, with switches across the top for language
+(Auto, English, Arabic), appearance (follow the device, light, dark) and a custom theme.
 
 ```bash
 flutter pub get
+flutter run                                              # the fixture: no key, no network
 flutter run --dart-define=CNCT_PUBLIC_KEY=your-inbox-public-key
 ```
 
-The key is a build flag rather than a constant in the source. The host is optional: without
+**Without a key it runs the fixture conversation**: CNCT's scripted chat, behind a fake transport
+and a fake socket, the same one the SDK's tests and screenshots render. It answers what you send, so
+the composer, attachments, ending and rating can all be tried with no account. Switch to Arabic to
+see the whole interface mirror; the fixture's own messages switch with it.
+
+With a key it is a live chat on that inbox. The host is optional: without
 `--dart-define=CNCT_BASE_URL=…` the app talks to CNCT production, `https://app.doo.ooo`.
 
-Three files, and each is worth reading for a different reason:
-
-| File                | What it shows                                                                     |
-| ------------------- | --------------------------------------------------------------------------------- |
-| `lib/main.dart`     | Where the host lives, and what an unconfigured build should say                    |
-| `lib/chat_screen.dart` | Rendering `CnctChatState`, cards with a `default` branch, a failed bubble that offers a retry |
-| `lib/token_store.dart` | Persisting the visitor's session in three callbacks, so a returning customer comes back to their own thread |
-
-Copy any of it. It is meant to be deleted once your own design system has the screen.
+All of it is `lib/main.dart`, and most of that is the switches: the chat itself is one widget.

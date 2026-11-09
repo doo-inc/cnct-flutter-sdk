@@ -24,8 +24,8 @@ sealed class CnctCredentials {
 /// they volunteer a phone number. It is the same key that sits in the URL of the hosted chat page,
 /// so it was already public.
 ///
-/// It grants chat and nothing else. It cannot read contacts, cannot list conversations, and cannot
-/// see another visitor's thread.
+/// It grants chat and nothing else. It cannot read contacts, and a visitor holding it sees their own
+/// conversations and never another visitor's.
 final class CnctChatPublicKey extends CnctCredentials {
   CnctChatPublicKey(this.publicKey) {
     if (publicKey.trim().isEmpty) {
