@@ -36,3 +36,29 @@ jobs:
         run: flutter analyze
       - working-directory: example/flutter_app
         run: flutter test
+
+  ui:
+    name: Chat UI (Flutter)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cnct_flutter_ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed --line-length 100 lib test tool
+      - name: The string table is still the shared strings.json
+        run: dart run tool/generate_strings.dart && git diff --exit-code lib/src/l10n/strings.g.dart
+      - run: flutter analyze
+      # Includes test/screenshots_test.dart, which renders the fixture conversation to PNGs.
+      - run: flutter test
+      - name: Upload the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: cnct_flutter_ui/build/screenshots/*.png
+          if-no-files-found: error
