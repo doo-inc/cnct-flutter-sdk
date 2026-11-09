@@ -63,16 +63,21 @@ class Cnct {
   ///
   /// Pass a [tokenStore] to keep the visitor's session across restarts. The default keeps it in
   /// memory, which means a returning customer arrives as a stranger.
+  ///
+  /// Pass [timeZone] to send the device's IANA zone with the session, which plain Dart cannot work
+  /// out for itself — `cnct_flutter_ui` has `cnctDeviceTimeZone` for a Flutter app.
   CnctChatClient chat(
     CnctChatPublicKey credentials, {
     CnctTokenStore? tokenStore,
     String? storageKey,
+    CnctTimeZoneResolver? timeZone,
   }) =>
       CnctChatClient(
         config: config,
         credentials: credentials,
         tokenStore: tokenStore,
         storageKey: storageKey,
+        timeZone: timeZone,
       );
 
   /// Bookings and tickets, on an account-wide API key. **Server-side only** — see [CnctApiKey].
